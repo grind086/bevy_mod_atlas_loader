@@ -3,14 +3,6 @@ name = "bevy_mod_atlas_loader"
 version = "0.1.0"
 edition = "2021"
 
-[[example]]
-name = "stack_overflow"
-required-features = [
-    "bevy/multi_threaded",
-    "bevy/asset_processor",
-    "bevy/file_watcher",
-]
-
 [features]
 # default = ["asset_processor"]
 # asset_processor = ["bevy/file_watcher", "bevy/asset_processor"]
