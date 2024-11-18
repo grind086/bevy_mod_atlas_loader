@@ -5,6 +5,11 @@ edition = "2021"
 
 [[example]]
 name = "stack_overflow"
+required-features = [
+    "bevy/multi_threaded",
+    "bevy/asset_processor",
+    "bevy/file_watcher",
+]
 
 [features]
 # default = ["asset_processor"]
