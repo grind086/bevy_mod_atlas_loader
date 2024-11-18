@@ -6,6 +6,9 @@ edition = "2021"
 [[example]]
 name = "stack_overflow"
 
+[[example]]
+name = "basic"
+
 [features]
 # default = ["asset_processor"]
 # asset_processor = ["bevy/file_watcher", "bevy/asset_processor"]
