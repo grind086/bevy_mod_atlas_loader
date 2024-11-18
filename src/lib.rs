@@ -62,7 +62,7 @@ impl TextureAtlasPaths {
     }
 
     /// Returns the [`AssetPath`] associated with the given index, if any.
-    pub fn index_path(&self, index: usize) -> Option<&AssetPath<'static>> {
+    pub fn texture_path(&self, index: usize) -> Option<&AssetPath<'static>> {
         if index < self.path_indices.len() {
             self.path_indices[index].as_ref()
         } else {
@@ -107,9 +107,9 @@ impl TextureAtlasPaths {
 /// fn create_sprite_from_atlas_asset<'a>(
 ///     atlas: &TextureAtlasAsset,
 ///     path: impl Into<AssetPath<'a>>
-/// ) -> impl Bundle {
-///     (
-///         SpriteBundle { texture: atlas.texture.clone(), ..default() },
+/// ) -> Sprite {
+///     Sprite::from_atlas_image(
+///         atlas.texture.clone(),
 ///         atlas.handle(path),
 ///     )
 /// }
@@ -125,6 +125,11 @@ impl TextureAtlasAsset {
     /// Retrieves the texture *section* index of the given `texture` path.
     pub fn texture_index<'a>(&self, texture: impl Into<AssetPath<'a>>) -> Option<usize> {
         self.paths.texture_index(texture.into())
+    }
+
+    /// Returns the [`AssetPath`] associated with the given index, if any.
+    pub fn texture_path(&self, index: usize) -> Option<&AssetPath<'static>> {
+        self.paths.texture_path(index)
     }
 
     /// Creates a [`TextureAtlas`] handle for the given `texture` path.
