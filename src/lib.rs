@@ -305,6 +305,8 @@ pub enum SaverError {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     IntoDynamicImage(#[from] IntoDynamicImageError),
+    #[error("Unable to save image with format: {0:?}")]
+    InvalidImageFormat(ImageFormat),
     #[error(transparent)]
     Image(std::io::Error),
     #[error("Unable to get `TextureAtlasLayout` sub-asset.")]
@@ -313,11 +315,24 @@ pub enum SaverError {
     MissingTexture,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SaverSettings {
+    pub format: ImageFormat,
+}
+
+impl Default for SaverSettings {
+    fn default() -> Self {
+        Self {
+            format: ImageFormat::Png,
+        }
+    }
+}
+
 pub struct TextureAtlasSaver;
 
 impl AssetSaver for TextureAtlasSaver {
     type Asset = TextureAtlasAsset;
-    type Settings = ();
+    type Settings = SaverSettings;
     type OutputLoader = TextureAtlasLoader;
     type Error = SaverError;
 
@@ -325,7 +340,7 @@ impl AssetSaver for TextureAtlasSaver {
         &self,
         writer: &mut Writer,
         asset: SavedAsset<'_, Self::Asset>,
-        &(): &Self::Settings,
+        settings: &Self::Settings,
     ) -> Result<<Self::OutputLoader as AssetLoader>::Settings, Self::Error> {
         debug!("Exporting texture atlas");
         let paths = &asset.get().paths;
@@ -336,13 +351,16 @@ impl AssetSaver for TextureAtlasSaver {
             .get_labeled::<Image, _>("texture")
             .ok_or(SaverError::MissingTexture)?;
 
-        trace!("Writing atlas image to buffer (png format)");
+        trace!("Writing atlas image to buffer ({:?} format)", settings.format);
         let mut png_buf = Vec::<u8>::new();
         let dyn_image = texture.get().clone().try_into_dynamic()?;
         dyn_image
             .write_to(
                 &mut std::io::Cursor::new(&mut png_buf),
-                ImageFormat::Png.as_image_crate_format().unwrap(),
+                settings
+                    .format
+                    .as_image_crate_format()
+                    .ok_or(SaverError::InvalidImageFormat(settings.format))?,
             )
             .map_err(|err| {
                 SaverError::Image(std::io::Error::new(std::io::ErrorKind::Other, err))
@@ -351,7 +369,7 @@ impl AssetSaver for TextureAtlasSaver {
 
         debug!("Exported texture atlas");
         Ok(LoaderSettings {
-            format: Some(ImageFormat::Png),
+            format: Some(settings.format),
             textures: paths
                 .path_indices
                 .iter()
