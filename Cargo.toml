@@ -1,0 +1,32 @@
+[package]
+name = "bevy_mod_atlas_loader"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "stack_overflow"
+
+[features]
+# default = ["asset_processor"]
+# asset_processor = ["bevy/file_watcher", "bevy/asset_processor"]
+
+[dependencies]
+bevy = { version = "0.15.0-rc.3", default-features = false, features = [
+    # Core
+    "bevy_asset",
+    "bevy_render",
+    "bevy_sprite",
+    "png",
+    # Processing
+    "multi_threaded",
+    "asset_processor",
+    # File Watcher
+    "file_watcher",
+    # Keep things alive long enough to crash
+    "bevy_winit",
+] }
+
+image = { version = "0.25", default-features = false, features = ["png"] }
+ron = "0.8"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
