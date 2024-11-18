@@ -5,25 +5,30 @@ edition = "2021"
 
 [[example]]
 name = "basic"
+required-features = ["bevy/bevy_winit"]
+
+[[example]]
+name = "processed"
+required-features = ["processed_example_features"]
 
 [features]
-# default = ["asset_processor"]
-# asset_processor = ["bevy/file_watcher", "bevy/asset_processor"]
+default = []
+
+basic_example_features = ["bevy/bevy_winit"]
+
+processed_example_features = [
+    "bevy/multi_threaded",
+    "bevy/asset_processor",
+    "bevy/file_watcher",
+    "bevy/bevy_winit",
+]
 
 [dependencies]
 bevy = { version = "0.15.0-rc.3", default-features = false, features = [
-    # Core
     "bevy_asset",
     "bevy_render",
     "bevy_sprite",
     "png",
-    # Processing
-    "multi_threaded",
-    "asset_processor",
-    # File Watcher
-    "file_watcher",
-    # Keep things alive long enough to crash
-    "bevy_winit",
 ] }
 
 ron = "0.8"
