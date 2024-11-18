@@ -1,3 +1,6 @@
+//! A minimal example that produces a stack overflow. Overflow only occurs on a dry run (no assets processed) when the
+//! `file_watcher` feature is enabled, and the loaded asset `Handle` is not dropped.
+
 use bevy::{
     log::{Level, LogPlugin},
     prelude::*,
@@ -26,5 +29,7 @@ fn main() {
 struct TileAtlas(Handle<TextureAtlasAsset>);
 
 fn startup(mut commands: Commands, assets: Res<AssetServer>) {
-    commands.insert_resource(TileAtlas(assets.load("my_atlas.atlas.ron")));
+    let handle = assets.load("my_atlas.atlas.ron");
+    // Commenting out the following line (and allowing the handle to drop) prevents the stack overflow
+    commands.insert_resource(TileAtlas(handle));
 }
