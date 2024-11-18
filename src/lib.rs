@@ -161,7 +161,15 @@ impl AssetLoader for TextureAtlasLoader {
         load_context: &mut LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let asset_path = load_context.asset_path().clone();
+        let internal_asset_path = AssetPath::from(
+            asset_path.path().to_path_buf().with_extension(
+                settings
+                    .format
+                    .map_or("bin", |format| format.to_file_extensions()[0]),
+            ),
+        );
         debug!("Loading atlas with texture: {asset_path}");
+        trace!("Loading atlas texture with path: {internal_asset_path}");
 
         let format = settings.format;
         let texture = load_context
@@ -174,7 +182,7 @@ impl AssetLoader for TextureAtlasLoader {
                     image_settings.format = ImageFormatSetting::Format(format);
                 }
             })
-            .load::<Image>(asset_path)
+            .load::<Image>(internal_asset_path)
             .await?;
 
         trace!(
@@ -351,7 +359,10 @@ impl AssetSaver for TextureAtlasSaver {
             .get_labeled::<Image, _>("texture")
             .ok_or(SaverError::MissingTexture)?;
 
-        trace!("Writing atlas image to buffer ({:?} format)", settings.format);
+        trace!(
+            "Writing atlas image to buffer ({:?} format)",
+            settings.format
+        );
         let mut png_buf = Vec::<u8>::new();
         let dyn_image = texture.get().clone().try_into_dynamic()?;
         dyn_image
