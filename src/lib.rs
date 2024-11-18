@@ -132,6 +132,7 @@ impl TextureAtlasAsset {
     }
 }
 
+/// Errors encountered by [`TextureAtlasLoader`].
 #[derive(Debug, Error)]
 pub enum LoaderError {
     #[error(transparent)]
@@ -305,7 +306,7 @@ pub enum SaverError {
     #[error(transparent)]
     IntoDynamicImage(#[from] IntoDynamicImageError),
     #[error(transparent)]
-    Image(#[from] image::error::ImageError),
+    Image(std::io::Error),
     #[error("Unable to get `TextureAtlasLayout` sub-asset.")]
     MissingLayout,
     #[error("Unable to get `Image` sub-asset.")]
@@ -338,10 +339,14 @@ impl AssetSaver for TextureAtlasSaver {
         trace!("Writing atlas image to buffer (png format)");
         let mut png_buf = Vec::<u8>::new();
         let dyn_image = texture.get().clone().try_into_dynamic()?;
-        dyn_image.write_to(
-            &mut std::io::Cursor::new(&mut png_buf),
-            image::ImageFormat::Png,
-        )?;
+        dyn_image
+            .write_to(
+                &mut std::io::Cursor::new(&mut png_buf),
+                ImageFormat::Png.as_image_crate_format().unwrap(),
+            )
+            .map_err(|err| {
+                SaverError::Image(std::io::Error::new(std::io::ErrorKind::Other, err))
+            })?;
         writer.write_all(&png_buf).await?;
 
         debug!("Exported texture atlas");

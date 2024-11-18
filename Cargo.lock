@@ -728,7 +728,6 @@ name = "bevy_mod_atlas_loader"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "image",
  "ron",
  "serde",
  "thiserror 2.0.3",
