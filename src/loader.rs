@@ -22,6 +22,8 @@ pub enum LoaderError {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     LoadDirect(#[from] LoadDirectError),
+    #[error("The sub-asset image loader for \"{0}\" did not return an `Image` handle")]
+    ImageTypeMismatch(AssetPath<'static>),
 }
 
 /// Configures the [`TextureAtlasLoader`].
@@ -89,9 +91,11 @@ impl AssetLoader for TextureAtlasLoader {
         trace!("Loading atlas texture with path: {internal_asset_path}");
 
         let format = settings.format;
-        let texture = load_context
+        let erased_texture = load_context
             .loader()
             .immediate()
+            // Load untyped to force asset loader detection based on path
+            .with_unknown_type()
             .with_reader(reader)
             .with_settings(move |image_settings: &mut ImageLoaderSettings| {
                 if let Some(format) = format {
@@ -99,8 +103,11 @@ impl AssetLoader for TextureAtlasLoader {
                     image_settings.format = ImageFormatSetting::Format(format);
                 }
             })
-            .load::<Image>(internal_asset_path)
+            .load(&internal_asset_path)
             .await?;
+        let texture = erased_texture
+            .downcast::<Image>()
+            .map_err(|_| LoaderError::ImageTypeMismatch(internal_asset_path))?;
 
         trace!(
             "Building texture atlas layout with {} textures",
